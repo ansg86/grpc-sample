@@ -3,13 +3,11 @@ syntax = "proto3";
 option java_multiple_files = true;
 option java_package = "com.grpc.example.gen";
 option java_outer_classname = "FileSyncProto";
-//option objc_class_prefix = "HLW";
 
 package sync;
 
 // The file-sync service definition.
 service File {
-  // Sends a greeting
   rpc SyncFile (SyncRequest) returns (SyncResponse) {}
 }
 
@@ -22,11 +20,10 @@ message SyncResponse {
   repeated FileInfo fileInfo = 1;
 }
 
-// The response message containing the greetings
+// The response message containing the file information
 message FileInfo {
   string fileName = 1;
-  string filePath = 2;
-  bytes fileBytes = 3;
-  bool isDirectory = 4;
-
+  bytes fileBytes = 2;
+  bool isDirectory = 3;
+  repeated FileInfo fileInfoChild = 4;
 }

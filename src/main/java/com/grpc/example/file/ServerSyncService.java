@@ -21,7 +21,8 @@ public class ServerSyncService extends FileGrpc.FileImplBase {
     public void syncFile(SyncRequest request,
                          StreamObserver<SyncResponse> responseObserver) {
         System.out.println("REQUESTED FROM " + request.getUserName());
-        List<FileInfo> fileInfoList = generateFileInfoList();
+        Path serverPath = Paths.get("D:\\Programming\\grpc-test\\server");
+        List<FileInfo> fileInfoList = generateFileInfoList(serverPath);
         SyncResponse syncResponse = SyncResponse.newBuilder()
                 .addAllFileInfo(fileInfoList).build();
         responseObserver.onNext(syncResponse);
@@ -29,15 +30,15 @@ public class ServerSyncService extends FileGrpc.FileImplBase {
         System.out.println("REQUESTED DONE " + request.getUserName());
     }
 
-    public List<FileInfo> generateFileInfoList() {
-        //TODO to be parameterized
-        Path path = Paths.get("D:\\Programming\\grpc-test\\server");
+    public List<FileInfo> generateFileInfoList(Path pathToSeek) {
         List<FileInfo> fileInfoList = new ArrayList<>();
         try {
-            Files.walk(path).forEach(childPath -> {
-                FileInfo fileInfo = generateFileInfo(childPath);
-                fileInfoList.add(fileInfo);
-            });
+            Files.walk(pathToSeek, 1)
+                    .filter(myPath -> !myPath.equals(pathToSeek))
+                    .forEach(childPath -> {
+                        FileInfo fileInfo = generateFileInfo(childPath);
+                        fileInfoList.add(fileInfo);
+                    });
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -51,15 +52,14 @@ public class ServerSyncService extends FileGrpc.FileImplBase {
             if (file.isFile()) {
                 return FileInfo.newBuilder()
                         .setIsDirectory(false)
-                        .setFilePath(file.getAbsolutePath())
                         .setFileName(file.getName())
                         .setFileBytes(ByteString.copyFrom(Files.readAllBytes(childPath)))
                         .build();
             } else {
                 return FileInfo.newBuilder()
                         .setIsDirectory(true)
-                        .setFilePath(file.getAbsolutePath())
                         .setFileName(file.getName())
+                        .addAllFileInfoChild(generateFileInfoList(childPath))
                         .build();
             }
         } catch (IOException e) {
