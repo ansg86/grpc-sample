@@ -5,6 +5,7 @@ import com.grpc.example.gen.FileGrpc;
 import com.grpc.example.gen.FileInfo;
 import com.grpc.example.gen.SyncRequest;
 import com.grpc.example.gen.SyncResponse;
+import com.grpc.example.util.PropsUtil;
 import io.grpc.stub.StreamObserver;
 
 import java.io.File;
@@ -14,14 +15,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class ServerSyncService extends FileGrpc.FileImplBase {
+
+    private static final String SERVER_PATH = "server.path";
 
     @Override
     public void syncFile(SyncRequest request,
                          StreamObserver<SyncResponse> responseObserver) {
         System.out.println("REQUESTED FROM " + request.getUserName());
-        Path serverPath = Paths.get("D:\\Programming\\grpc-test\\server");
+        Properties properties = PropsUtil.readProperties();
+        Path serverPath = Paths.get(properties.getProperty(SERVER_PATH));
         List<FileInfo> fileInfoList = generateFileInfoList(serverPath);
         SyncResponse syncResponse = SyncResponse.newBuilder()
                 .addAllFileInfo(fileInfoList).build();

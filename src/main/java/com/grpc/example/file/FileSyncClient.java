@@ -4,6 +4,7 @@ import com.grpc.example.gen.FileGrpc;
 import com.grpc.example.gen.FileInfo;
 import com.grpc.example.gen.SyncRequest;
 import com.grpc.example.gen.SyncResponse;
+import com.grpc.example.util.PropsUtil;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
@@ -12,9 +13,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 public class FileSyncClient {
+
+    private final static String CLIENT_PATH = "client.path";
 
     public static void main(String[] args) throws InterruptedException {
         String url = "localhost:50052";
@@ -22,7 +26,8 @@ public class FileSyncClient {
                 .usePlaintext().build();
         FileSyncClient client = new FileSyncClient();
         SyncRequest syncRequest = client.buildSyncRequest();
-        Path clientPath = Paths.get("D:\\Programming\\grpc-test\\client");
+        Properties properties = PropsUtil.readProperties();
+        Path clientPath = Paths.get(properties.getProperty(CLIENT_PATH));
 
         try {
             FileGrpc.FileBlockingStub blockingStub = FileGrpc.newBlockingStub(channel);
