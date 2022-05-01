@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 public class ServerSyncService extends FileGrpc.FileImplBase {
 
@@ -37,13 +38,11 @@ public class ServerSyncService extends FileGrpc.FileImplBase {
 
     public List<FileInfo> generateFileInfoList(Path pathToSeek) {
         List<FileInfo> fileInfoList = new ArrayList<>();
-        try {
-            Files.walk(pathToSeek, 1)
-                    .filter(myPath -> !myPath.equals(pathToSeek))
-                    .forEach(childPath -> {
-                        FileInfo fileInfo = generateFileInfo(childPath);
-                        fileInfoList.add(fileInfo);
-                    });
+        try (Stream<Path> fileStream = Files.walk(pathToSeek, 1)) {
+            fileStream.filter(myPath -> !myPath.equals(pathToSeek)).forEach(childPath -> {
+                FileInfo fileInfo = generateFileInfo(childPath);
+                fileInfoList.add(fileInfo);
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }
